@@ -3,8 +3,8 @@ import { describe, expect, test } from "vitest";
 
 // const console = new TaggedConsole("test");
 
-describe("tagged-console", () => {
-  test("test stdout", async () => {
+describe("logger", () => {
+  test("test debug", async () => {
     await expect(
       (async () =>
         // TODO: test
@@ -14,7 +14,7 @@ describe("tagged-console", () => {
     ).resolves.toEqual(true);
   });
 
-  test("test stderr", async () => {
+  test("test info", async () => {
     await expect(
       (async () =>
         // TODO: test
@@ -24,7 +24,17 @@ describe("tagged-console", () => {
     ).resolves.toEqual(true);
   });
 
-  test("test Date formatter", async () => {
+  test("test warn", async () => {
+    await expect(
+      (async () =>
+        // TODO: test
+        new Promise((resolve) => {
+          resolve(true);
+        }))()
+    ).resolves.toEqual(true);
+  });
+
+  test("test error", async () => {
     await expect(
       (async () =>
         // TODO: test
