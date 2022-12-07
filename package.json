@@ -1,0 +1,33 @@
+{
+  "name": "@sha3dev/logger",
+  "version": "0.0.1",
+  "private": false,
+  "main": "./dist/index.mjs",
+  "source": "./src/index.ts",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/**"
+  ],
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "tsup src/index.ts --format esm --dts",
+    "dev": "npm run build --watch",
+    "lint": "eslint 'src/**'",
+    "test": "vitest run --coverage",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "debug": "^4.3.4",
+    "dotenv": "^16.0.3",
+    "supports-color": "^9.2.3"
+  },
+  "devDependencies": {
+    "@sha3dev/eslint-config-custom": "*",
+    "@sha3dev/tsconfig": "*",
+    "@types/debug": "^4.1.7",
+    "@vitest/coverage-c8": "*",
+    "tsup": "*",
+    "typescript": "*",
+    "vitest": "*"
+  }
+}
