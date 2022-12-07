@@ -1,29 +1,45 @@
-// imports
+/**
+ * Logger
+ */
+
+/**
+ * imports: externals
+ */
+
 import createDebug, { Debugger } from "debug";
 
-// types
+/**
+ * imports: internals
+ */
+
+import CONFIG from "../config";
+
+/**
+ * types
+ */
 
 export type LoggerType = "log" | "info" | "warn" | "error";
 
-export type LoggerConfig = {
-  loggerName: string;
-};
+export type LoggerConfig = { loggerName: string };
 
-// exports
+/**
+ * exports
+ */
 
 export default class Logger {
-  // static: methods
+  /**
+   * private: attributes
+   */
 
-  // private: properties
-
-  // eslint-disable-next-line @typescript-eslint/dot-notation
-  private appName: string = process["env"].APP_NAME || "default";
+  private appName: string = CONFIG.APP_NAME;
 
   private config: LoggerConfig;
 
   private loggersInstances: Record<LoggerType, Debugger>;
 
-  // private: methods
+  /**
+   * private: methods
+   */
 
   private getLoggerByLevel(loggerName: string, level: LoggerType): Debugger {
     const logger = createDebug(this.appName).extend(loggerName).extend(level);
@@ -31,7 +47,9 @@ export default class Logger {
     return logger;
   }
 
-  // constructor
+  /**
+   * constructor
+   */
 
   constructor(loggerConfig: LoggerConfig | string) {
     if (typeof loggerConfig === "string") {
@@ -47,7 +65,9 @@ export default class Logger {
     };
   }
 
-  // public: methods
+  /**
+   * public: methods
+   */
 
   public debug(value: string) {
     this.loggersInstances.log(value);
