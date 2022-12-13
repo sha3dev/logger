@@ -3,5 +3,5 @@
 const ENV = process["env"];
 
 export default {
-  APP_NAME: ENV.PUPPETEER_LAUNCH_ARGS || "default"
+  APP_NAME: ENV.APP_NAME || "default"
 };

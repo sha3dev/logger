@@ -18,9 +18,11 @@ import CONFIG from "../config";
  * types
  */
 
-export type LoggerType = "log" | "info" | "warn" | "error";
+export type LoggerType = "debug" | "info" | "warn" | "error";
 
-export type LoggerConfig = { loggerName: string };
+export type PluginConfig = { name: string; options: any };
+
+export type LoggerConfig = { loggerName: string; plugins?: PluginConfig[] };
 
 /**
  * exports
@@ -47,6 +49,13 @@ export default class Logger {
     return logger;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private runPlugins(loggerType: LoggerType) {
+    if (this.config.plugins) {
+      // TODO
+    }
+  }
+
   /**
    * constructor
    */
@@ -58,7 +67,7 @@ export default class Logger {
       this.config = loggerConfig;
     }
     this.loggersInstances = {
-      log: this.getLoggerByLevel(this.config.loggerName, "log"),
+      debug: this.getLoggerByLevel(this.config.loggerName, "debug"),
       info: this.getLoggerByLevel(this.config.loggerName, "info"),
       warn: this.getLoggerByLevel(this.config.loggerName, "warn"),
       error: this.getLoggerByLevel(this.config.loggerName, "error")
@@ -70,18 +79,22 @@ export default class Logger {
    */
 
   public debug(value: string) {
-    this.loggersInstances.log(value);
+    this.runPlugins("debug");
+    this.loggersInstances.debug(value);
   }
 
   public info(value: string) {
+    this.runPlugins("info");
     this.loggersInstances.info(value);
   }
 
   public warn(value: string) {
+    this.runPlugins("warn");
     this.loggersInstances.warn(value);
   }
 
   public error(value: string) {
+    this.runPlugins("error");
     this.loggersInstances.error(value);
   }
 }
