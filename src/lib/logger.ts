@@ -22,7 +22,10 @@ export type LoggerType = "debug" | "info" | "warn" | "error";
 
 export type PluginConfig = { name: string; options: any };
 
-export type LoggerConfig = { loggerName: string; plugins?: PluginConfig[] };
+export type LoggerConfig = {
+  loggerName: string | null;
+  plugins?: PluginConfig[];
+};
 
 /**
  * exports
@@ -43,8 +46,15 @@ export default class Logger {
    * private: methods
    */
 
-  private getLoggerByLevel(loggerName: string, level: LoggerType): Debugger {
-    const logger = createDebug(this.appName).extend(loggerName).extend(level);
+  private getLoggerByLevel(
+    loggerName: string | null,
+    level: LoggerType
+  ): Debugger {
+    let logger = createDebug(this.appName);
+    if (loggerName) {
+      logger = logger.extend(loggerName);
+    }
+    logger = logger.extend(level);
     logger.log = (console as any)[level].bind(console);
     return logger;
   }
@@ -60,8 +70,10 @@ export default class Logger {
    * constructor
    */
 
-  constructor(loggerConfig: LoggerConfig | string) {
-    if (typeof loggerConfig === "string") {
+  constructor(loggerConfig?: LoggerConfig | string) {
+    if (!loggerConfig) {
+      this.config = { loggerName: null };
+    } else if (typeof loggerConfig === "string") {
       this.config = { loggerName: loggerConfig };
     } else {
       this.config = loggerConfig;

@@ -1,37 +1,59 @@
 // src/lib/logger.ts
 import createDebug from "debug";
+
+// src/config.ts
+var ENV = process["env"];
+var config_default = {
+  APP_NAME: ENV.APP_NAME || "default"
+};
+
+// src/lib/logger.ts
 var Logger = class {
-  appName = process["env"].APP_NAME || "default";
+  appName = config_default.APP_NAME;
   config;
   loggersInstances;
   getLoggerByLevel(loggerName, level) {
-    const logger = createDebug(this.appName).extend(loggerName).extend(level);
+    let logger = createDebug(this.appName);
+    if (loggerName) {
+      logger = logger.extend(loggerName);
+    }
+    logger = logger.extend(level);
     logger.log = console[level].bind(console);
     return logger;
   }
+  runPlugins(loggerType) {
+    if (this.config.plugins) {
+    }
+  }
   constructor(loggerConfig) {
-    if (typeof loggerConfig === "string") {
+    if (!loggerConfig) {
+      this.config = { loggerName: null };
+    } else if (typeof loggerConfig === "string") {
       this.config = { loggerName: loggerConfig };
     } else {
       this.config = loggerConfig;
     }
     this.loggersInstances = {
-      log: this.getLoggerByLevel(this.config.loggerName, "log"),
+      debug: this.getLoggerByLevel(this.config.loggerName, "debug"),
       info: this.getLoggerByLevel(this.config.loggerName, "info"),
       warn: this.getLoggerByLevel(this.config.loggerName, "warn"),
       error: this.getLoggerByLevel(this.config.loggerName, "error")
     };
   }
   debug(value) {
-    this.loggersInstances.log(value);
+    this.runPlugins("debug");
+    this.loggersInstances.debug(value);
   }
   info(value) {
+    this.runPlugins("info");
     this.loggersInstances.info(value);
   }
   warn(value) {
+    this.runPlugins("warn");
     this.loggersInstances.warn(value);
   }
   error(value) {
+    this.runPlugins("error");
     this.loggersInstances.error(value);
   }
 };
