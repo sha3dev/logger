@@ -3,5 +3,5 @@
 const ENV = process["env"];
 
 export default {
-  APP_NAME: ENV.APP_NAME || "default"
+  APP_ID: ENV.APP_ID || "default"
 };

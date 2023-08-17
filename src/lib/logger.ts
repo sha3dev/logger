@@ -36,7 +36,7 @@ export default class Logger {
    * private: attributes
    */
 
-  private appName: string = CONFIG.APP_NAME;
+  private appId: string = CONFIG.APP_ID;
 
   private config: LoggerConfig;
 
@@ -46,12 +46,9 @@ export default class Logger {
    * private: methods
    */
 
-  private getLoggerByLevel(
-    loggerName: string | null,
-    level: LoggerType
-  ): Debugger {
-    let logger = createDebug(this.appName);
-    if (loggerName) {
+  private getLoggerByLevel(loggerName: string | null, level: LoggerType): Debugger {
+    let logger = createDebug(this.appId);
+    if (loggerName && loggerName !== this.appId) {
       logger = logger.extend(loggerName);
     }
     logger = logger.extend(level);
