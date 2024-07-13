@@ -1,0 +1,44 @@
+{
+  "name": "@sha3/logger",
+  "version": "1.0.0",
+  "description": "Logger library",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "author": "Juan Carlos Viñas",
+  "license": "MIT",
+  "homepage": "https://github.com/sha3dev/logger#readme",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsup ./src"
+  },
+  "dependencies": {
+    "debug": "^4.3.5"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.12",
+    "tsup": "^8.1.0",
+    "typescript": "^5.5.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sha3dev/logger.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sha3dev/logger/issues"
+  },
+  "files": [
+    "dist",
+    "package.json"
+  ],
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
