@@ -53,6 +53,18 @@ logger.warn('This is a warning message');
 logger.error('This is an error message');
 ```
 
+### Applying Colors With `LogOptions`
+
+Every log level ships with a default color (debug → gray, info → blue, warn → yellow, error → red). You can override it per call by passing a `LogOptions` object that colorizes the message using [`chalk`](https://www.npmjs.com/package/chalk):
+
+```typescript
+logger.info('Server started', { color: 'green' });       // named color
+logger.warn('Cache almost full', { color: 'yellowBright' }); // chalk method name
+logger.error('Critical failure', { color: '#ff0055' });  // hex color
+```
+
+If an invalid color is provided, the logger gracefully falls back to the unstyled message.
+
 ## Configuration
 
 ### LoggerConfig
