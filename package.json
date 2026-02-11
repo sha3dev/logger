@@ -1,6 +1,6 @@
 {
   "name": "@sha3/logger",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "description": "Logger library",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -9,7 +9,7 @@
   "license": "MIT",
   "homepage": "https://github.com/sha3dev/logger#readme",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npm run build && node --test",
     "build": "tsup ./src"
   },
   "dependencies": {
@@ -18,8 +18,20 @@
   },
   "devDependencies": {
     "@types/debug": "^4.1.12",
-    "tsup": "^8.1.0",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "@types/ejs": "^3.1.5",
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^20.17.10",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "dotenv": "^16.5.0",
+    "eslint": "^8.57.1",
+    "prettier": "^3.4.2",
+    "prettier-eslint": "^16.3.0",
+    "puppeteer": "^24.34.0",
+    "tsup": "^8.5.0",
+    "tsx": "^4.19.2",
+    "typescript-eslint": "^8.18.2"
   },
   "repository": {
     "type": "git",

@@ -7,7 +7,6 @@
  */
 
 import chalk from "chalk";
-import createDebug, { Debugger } from "debug";
 
 /**
  * imports: internals
@@ -19,20 +18,28 @@ import CONFIG from "../config";
  * types
  */
 
-export type LoggerType = "debug" | "info" | "warn" | "error";;
+export type LoggerType = "debug" | "info" | "warn" | "error";
 
 export type LogColor = (typeof chalk)["Color"];
 
-export type LoggerPluginConfig = { name: string; options: any };
+export type LoggerPluginConfig = { name: string; options: any; invoke: (loggerType: LoggerType, value: string, options?: LogOptions) => void };
 
 export type LogOptions = { color?: LogColor };
 
-export type LoggerConfig = { loggerName: string | null; plugins?: LoggerPluginConfig[] };
+export type LoggerMergeChunksConfig = {
+  enabled?: boolean;
+  flushMs?: number;
+};
+
+export type LoggerConfig = {
+  loggerName: string | null;
+  plugins?: LoggerPluginConfig[];
+  mergeChunks?: LoggerMergeChunksConfig;
+};
 
 /**
  * exports
  */
-
 export default class Logger {
   /**
    * private: attributes
@@ -42,7 +49,7 @@ export default class Logger {
 
   private config: LoggerConfig;
 
-  private loggersInstances: Record<LoggerType, Debugger>;
+  private loggerName: string;
 
   private readonly defaultColorizers: Record<LoggerType, (text: string) => string> = {
     debug: chalk.gray,
@@ -51,26 +58,25 @@ export default class Logger {
     error: chalk.red,
   };
 
+  private mergeState: Partial<Record<LoggerType, { buffer: string; timer: ReturnType<typeof setTimeout> | null; lastOptions?: LogOptions }>> = {};
+
   /**
    * private: methods
    */
 
-  private getLoggerByLevel(
-loggerName: string | null,
-    level: LoggerType
-  ): Debugger {
-    let logger = createDebug(this.baseLoggerName);
-    if (loggerName && loggerName !== this.baseLoggerName) {
-      logger = logger.extend(loggerName);
-    }
-    logger = logger.extend(level);
-    logger.log = console[level].bind(console);
-    return logger;
+  private getTimestamp(): string {
+    return new Date().toISOString();
   }
 
-  private runPlugins(loggerType: LoggerType) {
+  private getPrefix(): string {
+    return `[${this.loggerName}] [${this.getTimestamp()}]`;
+  }
+
+  private runPlugins(loggerType: LoggerType, value: string, options?: LogOptions) {
     if (this.config.plugins) {
-      // TODO
+      this.config.plugins.forEach(plugin => {
+        plugin.invoke(loggerType, value, options);
+      });
     }
   }
 
@@ -96,6 +102,49 @@ loggerName: string | null,
     }
   }
 
+  private flushMerged(loggerType: LoggerType) {
+    const state = this.mergeState[loggerType];
+    if (!state) {
+      return;
+    }
+    const { buffer, lastOptions, timer } = state;
+    if (timer) {
+      clearTimeout(timer);
+    }
+    this.mergeState[loggerType] = { buffer: "", timer: null };
+    if (!buffer) {
+      return;
+    }
+    console[loggerType](`${this.getPrefix()} ${this.formatValue(buffer, lastOptions, loggerType)}`);
+  }
+
+  private write(loggerType: LoggerType, value: string, options?: LogOptions) {
+    const mergeCfg = this.config.mergeChunks;
+    if (!mergeCfg?.enabled) {
+      console[loggerType](`${this.getPrefix()} ${this.formatValue(value, options, loggerType)}`);
+      return;
+    }
+
+    const flushMs = mergeCfg.flushMs ?? 50;
+    const prev = this.mergeState[loggerType] ?? { buffer: "", timer: null };
+    const nextBuffer = `${prev.buffer}${value}`;
+    if (prev.timer) {
+      clearTimeout(prev.timer);
+    }
+
+    const shouldFlushNow = value.includes("\n");
+    const timer = shouldFlushNow
+      ? null
+      : setTimeout(() => {
+          this.flushMerged(loggerType);
+        }, flushMs);
+
+    this.mergeState[loggerType] = { buffer: nextBuffer, timer, lastOptions: options ?? prev.lastOptions };
+    if (shouldFlushNow) {
+      this.flushMerged(loggerType);
+    }
+  }
+
   /**
    * constructor
    */
@@ -108,12 +157,12 @@ loggerName: string | null,
     } else {
       this.config = loggerConfig;
     }
-    this.loggersInstances = {
-      debug: this.getLoggerByLevel(this.config.loggerName, "debug"),
-      info: this.getLoggerByLevel(this.config.loggerName, "info"),
-      warn: this.getLoggerByLevel(this.config.loggerName, "warn"),
-      error: this.getLoggerByLevel(this.config.loggerName, "error"),
-    };
+
+    const nameParts = [this.baseLoggerName];
+    if (this.config.loggerName && this.config.loggerName !== this.baseLoggerName) {
+      nameParts.push(this.config.loggerName);
+    }
+    this.loggerName = nameParts.join(":");
   }
 
   /**
@@ -121,22 +170,22 @@ loggerName: string | null,
    */
 
   public debug(value: string, options?: LogOptions) {
-    this.runPlugins("debug");
-    this.loggersInstances.debug(this.formatValue(value, options, "debug"));
+    this.runPlugins("debug", value, options);
+    this.write("debug", value, options);
   }
 
   public info(value: string, options?: LogOptions) {
-    this.runPlugins("info");
-    this.loggersInstances.info(this.formatValue(value, options, "info"));
+    this.runPlugins("info", value, options);
+    this.write("info", value, options);
   }
 
   public warn(value: string, options?: LogOptions) {
-    this.runPlugins("warn");
-    this.loggersInstances.warn(this.formatValue(value, options, "warn"));
+    this.runPlugins("warn", value, options);
+    this.write("warn", value, options);
   }
 
   public error(value: string, options?: LogOptions) {
-    this.runPlugins("error");
-    this.loggersInstances.error(this.formatValue(value, options, "error"));
+    this.runPlugins("error", value, options);
+    this.write("error", value, options);
   }
 }

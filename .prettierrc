@@ -1,0 +1,17 @@
+{
+  "printWidth": 160,
+  "tabWidth": 2,
+  "singleAttributePerLine": false,
+  "htmlWhitespaceSensitivity": "css",
+  "bracketSameLine": true,
+  "arrowParens": "avoid",
+  "proseWrap": "never",
+  "overrides": [
+    {
+      "files": "*.scss",
+      "options": {
+        "printWidth": 80
+      }
+    }
+  ]
+}
