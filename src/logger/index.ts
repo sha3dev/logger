@@ -1,7 +1,8 @@
-import Logger from "./logger/index.ts";
+import Logger from "./logger.ts";
 
 export default Logger;
-export { LoggerConfigurationError, LoggerTelegramError } from "./logger/index.ts";
+export { LoggerConfigurationError } from "./logger-configuration-error.ts";
+export { LoggerTelegramError } from "./logger-telegram-error.ts";
 export type {
   LogColor,
   LogOptions,
@@ -12,4 +13,4 @@ export type {
   LoggerType,
   TelegramParseMode,
   TelegramResponsePayload,
-} from "./logger/index.ts";
+} from "./logger-types.ts";

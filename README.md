@@ -1,13 +1,30 @@
+# @sha3/logger
 
-# Logger
+Typed logger for Node.js/TypeScript with console levels and optional Telegram delivery.
 
-A TypeScript-based Logger class utilizing the `debug` library for flexible and configurable logging.
+## TL;DR (60 seconds)
 
-## Features
+```bash
+npm install @sha3/logger
+```
 
-- Supports multiple log levels: `debug`, `info`, `warn`, `error`.
-- Configurable logger name and plugins.
-- Easily extensible for additional functionality.
+```ts
+import Logger from "@sha3/logger";
+
+const logger = new Logger({ loggerName: "api" });
+logger.info("Server started");
+logger.error("Gateway degraded", { telegram: true });
+```
+
+## Why this exists
+
+`@sha3/logger` gives teams a compact logging primitive with:
+
+- typed log levels,
+- per-message color overrides,
+- optional chunk merge for streamed logs,
+- optional Telegram output,
+- typed runtime errors for invalid configuration and Telegram failures.
 
 ## Installation
 
@@ -15,136 +32,151 @@ A TypeScript-based Logger class utilizing the `debug` library for flexible and c
 npm install @sha3/logger
 ```
 
-## Usage
+## Quick Start
 
-### Importing the Logger
+```ts
+import Logger from "@sha3/logger";
 
-```typescript
-import Logger, { LoggerType, LoggerConfig, LoggerPluginConfig } from '@sha3/logger';
+const logger = new Logger({
+  loggerName: "payments",
+  mergeChunks: { enabled: true, flushMs: 50 },
+  telegram: {
+    chatId: process.env.TELEGRAM_CHAT_ID ?? "",
+    botToken: process.env.TELEGRAM_BOT_TOKEN ?? "",
+  },
+});
+
+logger.debug("debug details");
+logger.info("payment accepted");
+logger.warn("retrying gateway call");
+logger.error("payment failed");
+logger.error("payment failed", { telegram: true });
 ```
 
-### Creating a Logger Instance
+## Public API Reference
 
-You can create a logger instance with or without configuration:
+### Default export
 
-#### Without Configuration
+- `Logger`: main class.
 
-```typescript
-const logger = new Logger();
+### Named exports
+
+- `LoggerConfigurationError`: thrown when constructor config is invalid.
+- `LoggerTelegramError`: thrown when Telegram API fails.
+- `LoggerType`: `"debug" | "info" | "warn" | "error"`.
+- `LogColor`: string color value (chalk method name, color keyword, hex, etc.).
+- `LogOptions`: `{ color?: LogColor }`.
+- `LoggerMergeChunksConfig`: `{ enabled?: boolean; flushMs?: number }`.
+- `LoggerTelegramConfig`: `{ chatId: string; botToken: string; parseMode?: "Markdown" | "MarkdownV2" | "HTML" }`.
+- `LoggerConfig`: logger configuration object.
+- `LoggerDependencies`: injectable runtime dependencies for output/time/scheduling/fetch.
+
+### Logger constructor
+
+```ts
+new Logger(loggerConfig?: LoggerConfig | string, dependencies?: Partial<LoggerDependencies>)
 ```
 
-#### With Configuration
+Behavior expectations:
 
-```typescript
-const config: LoggerConfig = {
-  loggerName: 'myLogger',
-  plugins: [{ name: 'plugin1', options: {} }]
+- When `loggerConfig` is a string, it is treated as `loggerName`.
+- Default base name comes from `CONFIG.BASE_LOGGER_NAME`.
+- Invalid config throws `LoggerConfigurationError`.
+
+### Instance methods
+
+- `debug(value: string, options?: LogOptions): void`
+- `info(value: string, options?: LogOptions): void`
+- `warn(value: string, options?: LogOptions): void`
+- `error(value: string, options?: LogOptions): void`
+
+Telegram behavior via `options.telegram`:
+
+- If `options.telegram === true` and Telegram config exists, the same message is sent to Telegram Bot API `sendMessage`.
+- If `options.telegram === true` and Telegram config is missing, `LoggerTelegramError` is thrown.
+
+### Static methods
+
+- `Logger.fromConfig(...)`: factory alias of constructor.
+- `Logger.isLoggerType(value: string): value is LoggerType`
+
+## Integration Guide (another project)
+
+### 1. Install
+
+```bash
+npm install @sha3/logger
+```
+
+### 2. Import
+
+```ts
+import Logger, { LoggerTelegramError, type LoggerConfig } from "@sha3/logger";
+```
+
+### 3. Configure
+
+```ts
+const loggerConfig: LoggerConfig = {
+  loggerName: "worker",
+  mergeChunks: { enabled: true, flushMs: 80 },
+  telegram: {
+    chatId: process.env.TELEGRAM_CHAT_ID ?? "",
+    botToken: process.env.TELEGRAM_BOT_TOKEN ?? "",
+    parseMode: "HTML",
+  },
 };
 
-const logger = new Logger(config);
+const logger = new Logger(loggerConfig);
 ```
 
-### Logging Messages
+### 4. Handle Telegram boundary errors
 
-```typescript
-logger.debug('This is a debug message');
-logger.info('This is an info message');
-logger.warn('This is a warning message');
-logger.error('This is an error message');
+```ts
+try {
+  logger.info("worker ready", { telegram: true });
+} catch (error) {
+  if (error instanceof LoggerTelegramError) {
+    process.stderr.write(`${error.name}: ${error.message}\n`);
+  }
+}
 ```
 
-### Applying Colors With `LogOptions`
+## Configuration Reference (`src/config.ts`)
 
-Every log level ships with a default color (debug → gray, info → blue, warn → yellow, error → red). You can override it per call by passing a `LogOptions` object that colorizes the message using [`chalk`](https://www.npmjs.com/package/chalk):
+Default export object:
 
-```typescript
-logger.info('Server started', { color: 'green' });       // named color
-logger.warn('Cache almost full', { color: 'yellowBright' }); // chalk method name
-logger.error('Critical failure', { color: '#ff0055' });  // hex color
+- `BASE_LOGGER_NAME`: base namespace for logger names.
+  - Source: `process.env.BASE_LOGGER_NAME ?? "default"`.
+- `DEFAULT_MERGE_FLUSH_MS`: fallback flush interval when merge mode is enabled and no `flushMs` is provided.
+  - Current value: `50`.
+
+## Compatibility
+
+- Runtime: Node.js with ESM support.
+- Module format: package is `"type": "module"` and exports ESM/CJS build artifacts from `dist`.
+- TypeScript: native `.d.ts` provided via `types` export.
+- Import style: use standard package import (`import Logger from "@sha3/logger"`).
+
+## Development
+
+```bash
+npm install
+npm run check
+npm run build
 ```
 
-If an invalid color is provided, the logger gracefully falls back to the unstyled message.
+`npm run check` runs lint, format verification, typecheck, and tests.
 
-## Configuration
+## AI Usage
 
-### LoggerConfig
+If you use an assistant in this repository:
 
-- `loggerName`: A string representing the base name for the logger.
-- `plugins`: An optional array of plugins with their configurations.
-
-### LoggerPluginConfig
-
-- `name`: The name of the plugin.
-- `options`: Configuration options for the plugin.
-
-### LoggerType
-
-Defines the types of log levels available:
-- `debug`
-- `info`
-- `warn`
-- `error`
-
-## Code Overview
-
-### Imports
-
-External dependencies:
-```typescript
-import createDebug, { Debugger } from 'debug';
-```
-
-Internal dependencies:
-```typescript
-import CONFIG from '../config';
-```
-
-### Types
-
-Defines types for the logger:
-```typescript
-export type LoggerType = 'debug' | 'info' | 'warn' | 'error';
-export type LoggerPluginConfig = { name: string; options: any };
-export type LoggerConfig = { loggerName: string | null; plugins?: LoggerPluginConfig[] };
-```
-
-### Logger Class
-
-#### Private Attributes
-
-- `baseLoggerName`: The base name for the logger from the configuration.
-- `config`: Configuration for the logger.
-- `loggersInstances`: Instances of the logger for different log levels.
-
-#### Private Methods
-
-- `getLoggerByLevel(loggerName: string | null, level: LoggerType): Debugger`: Creates a logger instance for a specific level.
-- `runPlugins(loggerType: LoggerType)`: Executes configured plugins (currently a placeholder).
-
-#### Constructor
-
-Initializes the logger with optional configuration.
-
-#### Public Methods
-
-- `debug(value: string)`: Logs a debug message.
-- `info(value: string)`: Logs an info message.
-- `warn(value: string)`: Logs a warning message.
-- `error(value: string)`: Logs an error message.
-
-### Environment Configuration
-
-The `BASE_LOGGER_NAME` variable is a crucial part of the logger configuration. It is read from the environment variables to provide a base name for all loggers. This allows for consistent and configurable naming across different environments and deployments.
-
-To set this variable, you can include it in your environment configuration file (e.g., `.env`):
-
-```env
-BASE_LOGGER_NAME=my_app_name
-```
-
-## TODO
-
-- Implement the `runPlugins` method to handle logger plugins.
+- Instruct it to read and obey `AGENTS.md` first.
+- Require class-first design with constructor injection.
+- Require single-return control flow and braces on all blocks.
+- Require tests for behavior changes.
+- Require `npm run check` before finalizing.
 
 ## License
 

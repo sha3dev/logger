@@ -1,0 +1,11 @@
+AGENTS.md
+ai/
+scripts/
+eslint.config.mjs
+prettier.config.cjs
+tsconfig.json
+tsconfig.build.json
+.vscode/
+dist/
+node_modules/
+package-lock.json

@@ -1,36 +1,45 @@
 {
   "name": "@sha3/logger",
-  "version": "1.0.9",
+  "version": "2.0.0",
   "description": "Logger library",
-  "main": "./dist/index.js",
+  "main": "dist/index.js",
   "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "types": "dist/index.d.ts",
   "author": "Juan Carlos Viñas",
   "license": "MIT",
   "homepage": "https://github.com/sha3dev/logger#readme",
   "scripts": {
-    "test": "npm run build && node --test",
-    "build": "tsup ./src"
+    "test": "node scripts/run-tests.mjs",
+    "build": "tsc -p tsconfig.build.json",
+    "check": "npm run lint && npm run format:check && npm run typecheck && npm run test",
+    "fix": "npm run lint:fix && npm run format:write",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format:check": "prettier --check .",
+    "format:write": "prettier --write .",
+    "typecheck": "tsc --noEmit",
+    "publish": "node scripts/release-publish.mjs"
   },
   "dependencies": {
     "chalk": "^4.1.2",
     "debug": "^4.3.5"
   },
   "devDependencies": {
+    "@sha3/code-standards": "^0.1.0",
     "@types/debug": "^4.1.12",
-    "typescript": "^5.5.3",
     "@types/ejs": "^3.1.5",
     "@types/fs-extra": "^11.0.4",
-    "@types/node": "^20.17.10",
+    "@types/node": "^22.13.10",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "dotenv": "^16.5.0",
-    "eslint": "^8.57.1",
-    "prettier": "^3.4.2",
+    "eslint": "^9.20.1",
+    "prettier": "^3.5.3",
     "prettier-eslint": "^16.3.0",
     "puppeteer": "^24.34.0",
     "tsup": "^8.5.0",
-    "tsx": "^4.19.2",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
     "typescript-eslint": "^8.18.2"
   },
   "repository": {
@@ -41,8 +50,7 @@
     "url": "https://github.com/sha3dev/logger/issues"
   },
   "files": [
-    "dist",
-    "package.json"
+    "dist"
   ],
   "exports": {
     ".": {
@@ -53,5 +61,12 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "type": "module",
+  "codeStandards": {
+    "template": "node-lib",
+    "profilePath": null,
+    "withAiAdapters": true,
+    "lastRefreshWith": "0.1.21"
   }
 }
