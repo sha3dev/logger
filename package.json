@@ -1,6 +1,6 @@
 {
   "name": "@sha3/logger",
-  "version": "1.0.6",
+  "version": "1.0.9",
   "description": "Logger library",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -46,9 +46,9 @@
   ],
   "exports": {
     ".": {
-      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.js"
     }
   },
   "publishConfig": {

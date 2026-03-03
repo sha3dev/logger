@@ -188,4 +188,9 @@ export default class Logger {
     this.runPlugins("error", value, options);
     this.write("error", value, options);
   }
+
+  public addPlugin(plugin: LoggerPluginConfig) {
+    this.config.plugins = this.config.plugins ?? [];
+    this.config.plugins.push(plugin);
+  }
 }
